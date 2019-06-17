@@ -233,13 +233,27 @@ FUNCTION FIT_FLUX, X, P
   opacity = P(num_c)*P(num_c+2)           ; the opacity (gs*opac)
   normLoc = P(num_c+4)                ; normalization point
 
+  ; temp test!
+  comps = []
+  FOR I = 0, num_c - 1 DO BEGIN
+    comp = readComps(files(I), dir, cutoff, X)
+    comps = [comps, comp]
+  ENDFOR 
   ; Parse the data and interlope appropriately
-  data_1 = readComps(files(0), dir, cutoff, X)
-  data_2 = readComps(files(1), dir, cutoff, X)
-  data_3 = readComps(files(2), dir, cutoff, X)
-  data_4 = readComps(files(3), dir, cutoff, X)
+  i1 = 0
+  i2 = 0+2
+  data_1 = comps[i1:i2, *]; readComps(files(0), dir, cutoff, X)
+  i1 = 3
+  i2 = 3+2
+  data_2 = comps[i1:i2, *]; readComps(files(1), dir, cutoff, X)
+  i1 = 6
+  i2 = 6+2
+  data_3 = comps[i1:i2, *]; readComps(files(2), dir, cutoff, X)
+  i1 = 9
+  i2 = 9+2
+  data_4 = comps[i1:i2, *]; readComps(files(3), dir, cutoff, X)
 
-  len    = n_elements(data_1(0,*))
+  len    = n_elements(comps(0,*))
 
   ;-------------
   ; Shkuratov
@@ -307,7 +321,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    VERBOSE = 1  
    ;
    ; the files containing the optical constants for the constituent minerals
-   ; these files need to be in the ./ocs directory
+   ; these files need to be in the ./ocs directory (relative to this script)
    ;files=['oliv70.dat','opx70.dat','cpx70.dat','chromite.dat']
    dir = ROUTINE_DIR() + '../ocs/'
    
