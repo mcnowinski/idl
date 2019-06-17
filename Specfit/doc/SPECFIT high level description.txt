@@ -1,0 +1,11 @@
+I received an IDL module named "Specfit" from Brian Burt at MIT who used it in the attached article. When applied to a normalized asteroid spectrum, this code will create a model spectrum using Shkuratov parameters and will helps constrain surface properties. 
+
+There are three modules to the code. Specfit is the main module and "mpfit" as wellas "mpfifin" are sub-routines. All three are .pro file and I have them in my pro folder in my Spextool sub-directory of IDL.
+
+A data folder, named ocs, provides mineral specs for the analysis (olivine, pyroxene, chromite, iron etc). This folder is placed in the IDL default working folder along  the spectrum being analyzed. 
+
+The routine is activated by the following IDL command:
+
+specfit, "specrum file name.txt", [0.5, 0.4, 0.05, 0.05]
+
+The number string at the end of the command provides mineral specs for the routine and should always add to 1. In this case the minerals are olivine, orthopyroxene, clinopyroxene, and chromium. The levels assigned are considered the best starting point.
