@@ -257,11 +257,30 @@ FUNCTION FIT_FLUX, X, P
 
   ;-------------
   ; Shkuratov
+  backs = []
+  FOR I = 0, num_c - 1 DO BEGIN
+    i1 = I*3
+    i2 = I*3+2
+    _back = shkuratov(comps[i1:i2, *], len, opacity)
+    backs = [backs, _back]
+  ENDFOR
   back1 = shkuratov(data_1, len, opacity)
   back2 = shkuratov(data_2, len, opacity)
   back3 = shkuratov(data_3, len, opacity)
   back4 = shkuratov(data_4, len, opacity)
 
+  _numerator_b = 0
+  _numerator_f = 0
+  _denominator = 0
+  FOR I = 0, num_c - 1 DO BEGIN
+    i1 = I*2
+    i2 = I*2+1
+    r_b = backs(i1, *)
+    r_f = backs(i2, *)
+    _denominator = _denominator + P(I)
+    _numerator_b = _numerator_b + r_b*P(I)
+    _numerator_f = _numerator_f + r_f*P(I)    
+  ENDFOR
   r_1_b = back1(0,*)
   r_1_f = back1(1,*)
   r_2_b = back2(0,*)
@@ -493,7 +512,6 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    
    ; determing the fit deviation from the data
    avgDev = total(abs(Y[indnrm:*]-FIT_FLUX(X[indnrm:*],solution)))/n_elements(Y[indnrm:*])
-
    ; Get the probability for each type
    solProbs = findProb(fracAdjust)
 
