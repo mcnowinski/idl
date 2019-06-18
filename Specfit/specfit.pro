@@ -217,7 +217,7 @@ END
 ;----------------------------------------------------
 FUNCTION FIT_FLUX, X, P
 
-  COMMON FIT
+  COMMON FIT, files, fracs, fixed, num_c, dir
 
   ; upper limit of fit
   cutoff = max(X)
@@ -227,34 +227,18 @@ FUNCTION FIT_FLUX, X, P
   newP = equalOne(P[0:num_c-1], fixedValues)
   P[0:num_c-1] = newP
 
-  ;files=['oliv70.dat','opx70.dat','cpx70.dat','chromite.dat']
-  ;dir = './ocs/'
   q=P(num_c+3)                        ; the porosity
   opacity = P(num_c)*P(num_c+2)           ; the opacity (gs*opac)
   normLoc = P(num_c+4)                ; normalization point
 
-  ; temp test!
+  ; Parse the data and interlope appropriately
   comps = []
   FOR I = 0, num_c - 1 DO BEGIN
     comp = readComps(files(I), dir, cutoff, X)
     comps = [comps, comp]
   ENDFOR 
-  ;; Parse the data and interlope appropriately
-  ;i1 = 0
-  ;i2 = 0+2
-  ;data_1 = comps[i1:i2, *]; readComps(files(0), dir, cutoff, X)
-  ;i1 = 3
-  ;i2 = 3+2
-  ;data_2 = comps[i1:i2, *]; readComps(files(1), dir, cutoff, X)
-  ;i1 = 6
-  ;i2 = 6+2
-  ;data_3 = comps[i1:i2, *]; readComps(files(2), dir, cutoff, X)
-  ;i1 = 9
-  ;i2 = 9+2
-  ;data_4 = comps[i1:i2, *]; readComps(files(3), dir, cutoff, X)
 
   len    = n_elements(comps(0,*))
-
   ;-------------
   ; Shkuratov
   backs = []
@@ -264,10 +248,6 @@ FUNCTION FIT_FLUX, X, P
     _back = shkuratov(comps[i1:i2, *], len, opacity)
     backs = [backs, _back]
   ENDFOR
-  ;back1 = shkuratov(data_1, len, opacity)
-  ;back2 = shkuratov(data_2, len, opacity)
-  ;back3 = shkuratov(data_3, len, opacity)
-  ;back4 = shkuratov(data_4, len, opacity)
 
   _numerator_b = 0
   _numerator_f = 0
@@ -281,18 +261,7 @@ FUNCTION FIT_FLUX, X, P
     _numerator_b = _numerator_b + r_b*P(I)
     _numerator_f = _numerator_f + r_f*P(I)    
   ENDFOR
-  ;r_1_b = back1(0,*)
-  ;r_1_f = back1(1,*)
-  ;r_2_b = back2(0,*)
-  ;r_2_f = back2(1,*)
-  ;r_3_b = back3(0,*)
-  ;r_3_f = back3(1,*)
-  ;r_4_b = back4(0,*)
-  ;r_4_f = back4(1,*)
 
-  ;pb = q*(P(0)*r_1_b+P(1)*r_2_b+P(2)*r_3_b+P(3)*r_4_b)/(P(0)+P(1)+P(2)+P(3))
-  ;pf = q*(P(0)*r_1_f+P(1)*r_2_f+P(2)*r_3_f+P(3)*r_4_f)/(P(0)+P(1)+P(2)+P(3))+1-q
-  
   pb = q * _numerator_b / _denominator
   pf = q * _numerator_f / _denominator + 1 - q
 
@@ -601,40 +570,40 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ; Set up plot window
    plot, [0.,0.], [0.,0.], xrange=[0.,2.5], yrange=[0,ytop], title=specfile, $
                            ytitle='Relative Reflectance', xtitle='Wavelength',$
-	                   charthick=3, xthick=3, ythick=3, /nodata, /noerase
+	                   charthick=1, xthick=2, ythick=2, /nodata ;, /noerase
 
    ; plot
    ; oploterr, X,Y,weighting
-   oplot, X, Y, psym=8                     ; data
-   oplot, allX, longSol, thick=6, color=250 ; the fit
+   oplot, X, Y, psym=8, symsize=0.75                      ; data
+   oplot, allX, longSol, thick=3, color=250 ; the fit
    oplot, X, residual                       ; residual
 
 
    ;----------------------------------------------
    ; Print fractional infomration to plot
    ;----------------------------------------------
-   ;xyouts,0.1,0.4,string('OLV'+num+': ',solution(0)*100, format='(A-6,F6.2,A2,F4.2)'),charthick=2
-   ;xyouts,0.1,0.3,string('OPX'+num+': ',solution(1)*100, format='(A-6,F6.2,A2,F4.2)'),charthick=2
-   ;xyouts,0.1,0.2,string('CPX'+num+': ',solution(2)*100, format='(A-6,F6.2,A2,F4.2)'),charthick=2
-   ;xyouts,0.1,0.1,string('CHR:   ',solution(3)*100,      format='(A-6,F6.2,A2,F4.2)'),charthick=2
-
    ;xyouts,0.95,0.4,string('GS: ',solution(4),            format='(A-4,1x,F6.2)'),charthick=2
    ;xyouts,0.95,0.3,string('POR: ',FIRSTsolution(7),      format='(A-4,1x,F6.2)'),charthick=2
    ;xyouts,0.95,0.2,string('OPC:',solution(6),            format='(A-4,1x,F6.2)'),charthick=2
-   xyouts,0.95,ytop-0.22,string('AVGDEV:',avgDev,        format='(A7,1x,F5.2)'),charthick=2
-
+   ;xyouts,0.95,ytop-0.22,string('AVGDEV:',avgDev,        format='(A7,1x,F5.2)'),charthick=1
    ;xyouts,1.5,0.4,string('eGS: ',solution(4)*solution(6),format='(A-5,1x,F6.2)'),charthick=2
    ;xyouts,1.5,0.3,string('ePOR:',solution(7),            format='(A-5,1x,F6.2)'),charthick=2
    ;xyouts,1.5,0.2,string('CS:  ',solution(5),            format='(A-5,1x,F6.2)'),charthick=2
-   xyouts,1.5,ytop-0.22,string('OL/(OL+PX):',olper,       format='(A11,F5.2)'),charthick=3
+   ;xyouts,1.5,ytop-0.22,string('OL/(OL+PX):',olper,       format='(A11,F5.2)'),charthick=3
 
    ; Legend for fit and data
-   oplot, [0.1,0.1], [ytop-0.2,ytop-0.2], psym=8, symsize=1.
-   oplot, [0.08,0.12], [ytop-0.3, ytop-0.3], thick=10., color=250
-   oplot, [0.08,0.12], [ytop-0.4, ytop-0.4]
-   xyouts, 0.15, ytop-0.22, 'Data', charthick=3
-   xyouts, 0.15, ytop-0.32, 'Fit', charthick=3
-   xyouts, 0.15, ytop-0.41, 'Residual', charthick=3
+   oplot, [0.1,0.1], [ytop-0.18,ytop-0.18], psym=8, symsize=0.75
+   oplot, [0.08,0.12], [ytop-0.23, ytop-0.23], thick=2, color=250
+   oplot, [0.08,0.12], [ytop-0.28, ytop-0.28]
+   xyouts, 0.15, ytop-0.2, 'Data', charthick=1
+   xyouts, 0.15, ytop-0.25, 'Fit', charthick=1
+   xyouts, 0.15, ytop-0.30, 'Residual', charthick=1
+   xyouts,0.15,ytop-0.35,string('Grain Size: ',solution(num_c),            format='(A-15,1x,F6.2)'),charthick=1
+   xyouts,0.15,ytop-0.40,string('Porosity: ',FIRSTsolution(num_c+3),            format='(A-15,1x,F6.2)'),charthick=1   
+   xyouts,0.15,ytop-0.45,string('Opacity: ',solution(num_c+2),            format='(A-15,1x,F6.2)'),charthick=1
+   FOR I = 0, num_c - 1 DO BEGIN
+     xyouts,0.15,ytop-0.50-0.05*I,string(files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)'),charthick=1
+   ENDFOR
 
    ; peace y'all
    ;device,/close
