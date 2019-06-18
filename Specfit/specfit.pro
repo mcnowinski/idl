@@ -239,19 +239,19 @@ FUNCTION FIT_FLUX, X, P
     comp = readComps(files(I), dir, cutoff, X)
     comps = [comps, comp]
   ENDFOR 
-  ; Parse the data and interlope appropriately
-  i1 = 0
-  i2 = 0+2
-  data_1 = comps[i1:i2, *]; readComps(files(0), dir, cutoff, X)
-  i1 = 3
-  i2 = 3+2
-  data_2 = comps[i1:i2, *]; readComps(files(1), dir, cutoff, X)
-  i1 = 6
-  i2 = 6+2
-  data_3 = comps[i1:i2, *]; readComps(files(2), dir, cutoff, X)
-  i1 = 9
-  i2 = 9+2
-  data_4 = comps[i1:i2, *]; readComps(files(3), dir, cutoff, X)
+  ;; Parse the data and interlope appropriately
+  ;i1 = 0
+  ;i2 = 0+2
+  ;data_1 = comps[i1:i2, *]; readComps(files(0), dir, cutoff, X)
+  ;i1 = 3
+  ;i2 = 3+2
+  ;data_2 = comps[i1:i2, *]; readComps(files(1), dir, cutoff, X)
+  ;i1 = 6
+  ;i2 = 6+2
+  ;data_3 = comps[i1:i2, *]; readComps(files(2), dir, cutoff, X)
+  ;i1 = 9
+  ;i2 = 9+2
+  ;data_4 = comps[i1:i2, *]; readComps(files(3), dir, cutoff, X)
 
   len    = n_elements(comps(0,*))
 
@@ -264,10 +264,10 @@ FUNCTION FIT_FLUX, X, P
     _back = shkuratov(comps[i1:i2, *], len, opacity)
     backs = [backs, _back]
   ENDFOR
-  back1 = shkuratov(data_1, len, opacity)
-  back2 = shkuratov(data_2, len, opacity)
-  back3 = shkuratov(data_3, len, opacity)
-  back4 = shkuratov(data_4, len, opacity)
+  ;back1 = shkuratov(data_1, len, opacity)
+  ;back2 = shkuratov(data_2, len, opacity)
+  ;back3 = shkuratov(data_3, len, opacity)
+  ;back4 = shkuratov(data_4, len, opacity)
 
   _numerator_b = 0
   _numerator_f = 0
@@ -281,17 +281,20 @@ FUNCTION FIT_FLUX, X, P
     _numerator_b = _numerator_b + r_b*P(I)
     _numerator_f = _numerator_f + r_f*P(I)    
   ENDFOR
-  r_1_b = back1(0,*)
-  r_1_f = back1(1,*)
-  r_2_b = back2(0,*)
-  r_2_f = back2(1,*)
-  r_3_b = back3(0,*)
-  r_3_f = back3(1,*)
-  r_4_b = back4(0,*)
-  r_4_f = back4(1,*)
+  ;r_1_b = back1(0,*)
+  ;r_1_f = back1(1,*)
+  ;r_2_b = back2(0,*)
+  ;r_2_f = back2(1,*)
+  ;r_3_b = back3(0,*)
+  ;r_3_f = back3(1,*)
+  ;r_4_b = back4(0,*)
+  ;r_4_f = back4(1,*)
 
-  pb = q*(P(0)*r_1_b+P(1)*r_2_b+P(2)*r_3_b+P(3)*r_4_b)/(P(0)+P(1)+P(2)+P(3))
-  pf = q*(P(0)*r_1_f+P(1)*r_2_f+P(2)*r_3_f+P(3)*r_4_f)/(P(0)+P(1)+P(2)+P(3))+1-q
+  ;pb = q*(P(0)*r_1_b+P(1)*r_2_b+P(2)*r_3_b+P(3)*r_4_b)/(P(0)+P(1)+P(2)+P(3))
+  ;pf = q*(P(0)*r_1_f+P(1)*r_2_f+P(2)*r_3_f+P(3)*r_4_f)/(P(0)+P(1)+P(2)+P(3))+1-q
+  
+  pb = q * _numerator_b / _denominator
+  pf = q * _numerator_f / _denominator + 1 - q
 
   ; the reflectance
   Fa  = [(1+pb^2-pf^2)/(2*pb)-[((1+pb^2-pf(*)^2)/(2*pb))^2-1]^0.5]
@@ -304,11 +307,11 @@ FUNCTION FIT_FLUX, X, P
 
   ; weathering equation
   FOR b=0,len-1 DO BEGIN
-     Fa(b) = exp(-1.*P(num_c+1)/data_1(0,b))*Fa(b)
+     Fa(b) = exp(-1.*P(num_c+1)/comps(0,b))*Fa(b)
   ENDFOR
 
   ; normalize the solution
-  anorm = getNorm(data_1(0,*),Fa,normLoc)
+  anorm = getNorm(comps(0,*),Fa,normLoc)
   Fa = Fa/anorm
   RETURN, transpose(Fa)
 END
