@@ -429,7 +429,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    pi(num_c).limits = [50.D,1000.D]
    ; weather param
    pi(num_c+1).limits = [-1.D,1.D]
-   pi(num_c+2).limits = [1./pi(4).limits[0],10.D] ; [1-->10]
+   pi(num_c+2).limits = [1./pi(num_c).limits[0],10.D] ; [1-->10]
    ; porosity range
    pi(num_c+3).limits = [0D,1D]
    ; normalization range
