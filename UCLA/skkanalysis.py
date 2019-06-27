@@ -443,11 +443,12 @@ def skkanalysis(wavelengths, albedo, refwave, refreal, q, S, filename):
         results.append([wavelengths[i], realsafter[i], imsafter[i]])
     # Writes the results to file
     file = open(filename, 'w')
-    file.write(
-        'Optical Constants derived by Shkuratov et al. Theory and SK-K Analysis\n')
-    file.write('Wavelength    real index    im index\n')
+    # file.write(
+    #    'Optical Constants derived by Shkuratov et al. Theory and SK-K Analysis\n')
+    #file.write('Wavelength    real index    im index\n')
     for i in range(len(results)):
-        file.write(str(results[i][0])+'    ' +
+        # clean this up. we assume wavelengths are in nm and we want um
+        file.write(str(results[i][0]/1000)+'    ' +
                    str(results[i][1])+'    '+str(results[i][2])+'\n')
     file.close()
     print('file '+filename+' printed after '+str(itr)+' iterations.\n')
@@ -503,7 +504,7 @@ def main():
         f.close()
 
         output_path = input_path + skk_file + \
-            '.n%.3f@%.3f.q%.3f.S%0.3f.out' % (n, wavelength, q, S)
+            '.n%.3f@%.3f.q%.3f.S%0.3f.dat' % (n, wavelength, q, S)
         logger.debug(output_path)
         # perform the skk calculations
         skkanalysis(wavelengths, albedos, wavelength, n, q, S, output_path)

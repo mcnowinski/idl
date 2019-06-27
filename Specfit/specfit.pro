@@ -266,7 +266,7 @@ FUNCTION FIT_FLUX, X, P
   pf = q * _numerator_f / _denominator + 1 - q
 
   ; the reflectance
-  Fa  = [(1+pb^2-pf^2)/(2*pb)-[((1+pb^2-pf(*)^2)/(2*pb))^2-1]^0.5]
+  Fa  = [(1+pb^2-pf^2)/(2*pb)-[((1+pb^2-pf^2)/(2*pb))^2-1]^0.5]
   ;-------------
 
   ; ---
@@ -458,7 +458,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    FOR I = 0, num_c - 1 DO BEGIN
      pi(I).fixed = fixed(I)
    ENDFOR   
-   
+ 
    pi(num_c).fixed = 1              ; grain size               ;1
    pi(num_c+1).fixed = 1              ; weathering parameter     ;1
    pi(num_c+2).fixed = 0              ; opacity                  ;0
@@ -468,6 +468,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ; fit the spectrum (again)
    pi(num_c+1).limits = [-10.D,10.D]  ; let weatherin parameter try more space
    pi(num_c+3).limits = [-10D,10D]    ; let porosity try more space
+     
    solution = mpfitfun('FIT_FLUX', toFitX, toFitY, errs, FIRSTsolution, PARINFO=pi, $
                        WEIGHTS=weighting, QUIET=1)
 
@@ -529,7 +530,6 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ;               solProbs.typeProbs[1], solProbs.typeProbs[2], format='(A20,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1x,F8.4,1X,F6.2,1X,F6.2,1X,F6.2)'
 
    ;free_lun, lun50
-
    ;----------------------------------------------
    ; Plot the data and fit
    ;----------------------------------------------
@@ -538,7 +538,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    longSol  = FIT_FLUX(allX,solution)
    shortSol = FIT_FLUX(X,solution)
    residual = (shortSol(*,0)-Y)
-   residual = (0.25-mean(residual))+residual
+   ;residual = (0.25-mean(residual))+residual
 
    ; decide how to label the figure
    IF strmatch(cmpFile,'*7*') THEN num='70'
@@ -598,16 +598,33 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    xyouts, 0.15, ytop-0.2, 'Data', charthick=1
    xyouts, 0.15, ytop-0.25, 'Fit', charthick=1
    xyouts, 0.15, ytop-0.30, 'Residual', charthick=1
-   xyouts,0.15,ytop-0.35,string('Grain Size: ',solution(num_c),            format='(A-15,1x,F6.2)'),charthick=1
-   xyouts,0.15,ytop-0.40,string('Porosity: ',FIRSTsolution(num_c+3),            format='(A-15,1x,F6.2)'),charthick=1   
-   xyouts,0.15,ytop-0.45,string('Opacity: ',solution(num_c+2),            format='(A-15,1x,F6.2)'),charthick=1
+   xyouts,0.15,ytop-0.35,string('Avg Dev:',avgDev, format='(A7,1x,F5.2)'),charthick=1
+   xyouts,0.15,ytop-0.40,string('Grain Size: ',solution(num_c),            format='(A-15,1x,F6.2)'),charthick=1
+   xyouts,0.15,ytop-0.45,string('Porosity: ',FIRSTsolution(num_c+3),            format='(A-15,1x,F6.2)'),charthick=1   
+   xyouts,0.15,ytop-0.50,string('Opacity: ',solution(num_c+2),            format='(A-15,1x,F6.2)'),charthick=1
    FOR I = 0, num_c - 1 DO BEGIN
-     xyouts,0.15,ytop-0.50-0.05*I,string(files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)'),charthick=1
+     xyouts,0.15,ytop-0.55-0.05*I,string(files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)'),charthick=1
    ENDFOR
 
    ; peace y'all
    ;device,/close
    ;set_plot,'X'
    set_plot,'WIN'
+
+   openw, lun50, specfile + '.' + STRCOMPRESS(STRING(SYSTIME(/SECONDS), FORMAT='(I)'), /REMOVE_ALL) + '.dat', /get_lun
+   printf, lun50, string('#Grain Size: ', solution(num_c), format='(A-15,1x,F6.2)')
+   printf, lun50, string('#Porosity: ', FIRSTsolution(num_c+3), format='(A-15,1x,F6.2)')
+   printf, lun50, string('#Opacity: ',solution(num_c+2), format='(A-15,1x,F6.2)')
+   printf, lun50, '#Abundance:'
+   FOR I = 0, num_c - 1 DO BEGIN
+     printf, lun50, string('#'+files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)')
+   ENDFOR
+   ; send input spectra and output fit to file based on input wavelengths
+   yarr_fit  = FIT_FLUX(xarr,solution)
+   avgDev = total(abs(yarr-yarr_fit))/n_elements(yarr)
+   printf, lun50, string('#Avg Dev: ', avgDev, format='(A-15,1x,F8.4)')
+   printf, lun50, '#wavelength Rin Rfit'
+   printf, lun50, transpose([[xarr], [yarr], [yarr_fit]]), format='(3F)'
+   free_lun, lun50
    
 END
