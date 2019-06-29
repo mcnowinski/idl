@@ -544,6 +544,9 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    IF strmatch(cmpFile,'*7*') THEN num='70'
    IF strmatch(cmpFile,'*6*') THEN num='60'
 
+   ;close all open windows
+   while !d.window ne -1 do wdelete, !d.window
+
    ; some plot set up
    loadct,39,/silent            ;
    SET_PLOT, 'WIN'
@@ -568,7 +571,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ENDIF
 
    ; Set up plot window
-   plot, [0.,0.], [0.,0.], xrange=[0.,2.5], yrange=[0,ytop], title=specfile, $
+   plot, [0.,0.], [0.,0.], xrange=[0.,2.5], yrange=[0,ytop], title=specfile + ' ('+ TIMESTAMP() + ')', $
                            ytitle='Relative Reflectance', xtitle='Wavelength',$
 	                   charthick=1, xthick=2, ythick=2, /nodata ;, /noerase
 
