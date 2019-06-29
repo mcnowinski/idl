@@ -332,7 +332,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ENDIF
    
    ; ensure fractional values add to 1
-   IF TOTAL(fracs) NE 1 THEN BEGIN
+   IF ROUND(TOTAL(fracs)*100) NE 100 THEN BEGIN
      PRINT, "Error. Fractional values do not add to 1."
      STOP    
    ENDIF
