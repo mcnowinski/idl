@@ -537,7 +537,7 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    allX = findgen(2000.)/951. + 0.4
    longSol  = FIT_FLUX(allX,solution)
    shortSol = FIT_FLUX(X,solution)
-   residual = (shortSol(*,0)-Y)
+   residual = abs(shortSol(*,0)-Y)
    ;residual = (0.25-mean(residual))+residual
 
    ; decide how to label the figure
