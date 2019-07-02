@@ -540,6 +540,22 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    residual = abs(shortSol(*,0)-Y)
    ;residual = (0.25-mean(residual))+residual
 
+   ; send input spectra and output fit to file based on input wavelengths
+   yarr_fit  = FIT_FLUX(xarr,solution)
+   ; calculate R2
+   yarr_mean = MEAN(yarr)
+   SStot = 0
+   FOR I = 0, N_ELEMENTS(yarr) - 1 DO BEGIN
+     SStot = SStot + (yarr[I]-yarr_mean)^2
+   ENDFOR
+   SSres = 0
+   FOR I = 0, N_ELEMENTS(yarr_fit) - 1 DO BEGIN
+     SSres = SSres + (yarr_fit[I]-yarr[I])^2
+   ENDFOR
+   R2 = 1.0 - SSres/SStot
+   ; average deviation
+   avgDev = total(abs(yarr-yarr_fit))/n_elements(yarr)
+
    ; decide how to label the figure
    IF strmatch(cmpFile,'*7*') THEN num='70'
    IF strmatch(cmpFile,'*6*') THEN num='60'
@@ -578,9 +594,11 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    ; plot
    ; oploterr, X,Y,weighting
    oplot, X, Y, psym=8, symsize=0.75                      ; data
-   oplot, allX, longSol, thick=3, color=250 ; the fit
+   oplot, X, yarr_fit, thick=3, color=250 ; the fit
    oplot, X, residual                       ; residual
 
+   ; Overplot error bars:
+   ERRPLOT, Y-0.1, Y+0.1
 
    ;----------------------------------------------
    ; Print fractional infomration to plot
@@ -602,11 +620,12 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    xyouts, 0.15, ytop-0.25, 'Fit', charthick=1
    xyouts, 0.15, ytop-0.30, 'Residual', charthick=1
    xyouts,0.15,ytop-0.35,string('Avg Dev:',avgDev, format='(A7,1x,F5.2)'),charthick=1
-   xyouts,0.15,ytop-0.40,string('Grain Size: ',solution(num_c),            format='(A-15,1x,F6.2)'),charthick=1
-   xyouts,0.15,ytop-0.45,string('Porosity: ',FIRSTsolution(num_c+3),            format='(A-15,1x,F6.2)'),charthick=1   
-   xyouts,0.15,ytop-0.50,string('Opacity: ',solution(num_c+2),            format='(A-15,1x,F6.2)'),charthick=1
+   xyouts,0.15,ytop-0.40,string('R2:     ',R2, format='(A7,1x,F5.2)'),charthick=1
+   xyouts,0.15,ytop-0.45,string('Grain Size: ',solution(num_c),            format='(A-15,1x,F6.2)'),charthick=1
+   xyouts,0.15,ytop-0.50,string('Porosity: ',FIRSTsolution(num_c+3),            format='(A-15,1x,F6.2)'),charthick=1   
+   xyouts,0.15,ytop-0.55,string('Opacity: ',solution(num_c+2),            format='(A-15,1x,F6.2)'),charthick=1
    FOR I = 0, num_c - 1 DO BEGIN
-     xyouts,0.15,ytop-0.55-0.05*I,string(files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)'),charthick=1
+     xyouts,0.15,ytop-0.60-0.05*I,string(files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)'),charthick=1
    ENDFOR
 
    ; peace y'all
@@ -622,10 +641,8 @@ PRO SPECFIT, specfile, _files, _fracs, _fixed
    FOR I = 0, num_c - 1 DO BEGIN
      printf, lun50, string('#'+files(I)+': %',solution(I)*100, format='(A-15,F6.2,A2,F4.2)')
    ENDFOR
-   ; send input spectra and output fit to file based on input wavelengths
-   yarr_fit  = FIT_FLUX(xarr,solution)
-   avgDev = total(abs(yarr-yarr_fit))/n_elements(yarr)
    printf, lun50, string('#Avg Dev: ', avgDev, format='(A-15,1x,F8.4)')
+   printf, lun50, string('#R2:      ', R2, format='(A-15,1x,F8.4)')   
    printf, lun50, '#wavelength Rin Rfit'
    printf, lun50, transpose([[xarr], [yarr], [yarr_fit]]), format='(3F)'
    free_lun, lun50
