@@ -217,7 +217,7 @@ END
 ;----------------------------------------------------
 FUNCTION FIT_FLUX, X, P
 
-  COMMON FIT, files, fracs, fixed, num_c, dir
+  COMMON FIT, files, fracs, fixed, num_c, dir, weather
 
   ; upper limit of fit
   cutoff = max(X)
@@ -275,9 +275,11 @@ FUNCTION FIT_FLUX, X, P
   ; ---
 
   ; weathering equation
-  FOR b=0,len-1 DO BEGIN
-     Fa(b) = exp(-1.*P(num_c+1)/comps(0,b))*Fa(b)
-  ENDFOR
+  IF weather EQ 1 THEN BEGIN
+    FOR b=0,len-1 DO BEGIN
+       Fa(b) = exp(-1.*P(num_c+1)/comps(0,b))*Fa(b)
+    ENDFOR
+  ENDIF
 
   ; normalize the solution
   anorm = getNorm(comps(0,*),Fa,normLoc)
@@ -292,13 +294,14 @@ END
 ; and a file of fit parameters.
 ;####################################################
 ;----------------------------------------------------
-PRO SPECFIT, specfile, _files, _fracs, _fixed
+PRO SPECFIT, specfile, _files, _fracs, _fixed, _weather
 
-   COMMON FIT, files, fracs, fixed, num_c, dir
+   COMMON FIT, files, fracs, fixed, num_c, dir, weather
    
    files = _files
    fracs = _fracs
    fixed = _fixed
+   weather = _weather
 
    ; specfile is reflectance input
    ; files is list of files containing the optical constants (n and k) for each constituent mineral
